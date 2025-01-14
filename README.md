@@ -1,4 +1,4 @@
-# AsanaNet (Modernized)
+# AsanaNet v2
 
 ## 🚨 This project has been modernized and updated for .NET 9 🚨
 
