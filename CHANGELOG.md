@@ -2,6 +2,55 @@
 
 All notable changes to the AsanaNet project will be documented in this file.
 
+## [2.1.0-alpha] - 01-14-2025
+
+### Added
+- Added comprehensive XML documentation to all models and interfaces
+- Added new `AsanaTaskDependency` model for better dependency tracking
+- Added `AsanaCustomFieldValue` model for custom field support
+- Added generic type support for `AsanaObjectCollection<T>`
+- Added comprehensive constants in `AsanaConstants` class including:
+  - Additional endpoint paths
+  - Common API parameters
+  - Resource types
+  - Default values and limits
+  - Date format constants
+
+### Enhanced
+- Improved error handling with detailed error messages
+- Enhanced task management functionality with:
+  - Better dependency management
+  - Improved attachment handling
+  - Enhanced custom field support
+  - Comprehensive like/heart functionality
+  - Section management capabilities
+- Updated all collection-returning methods to use generic `AsanaObjectCollection<T>`
+- Improved type safety throughout the API
+- Enhanced nullability handling in all models
+
+### Documentation
+- Added XML documentation to all public models:
+  - `AsanaError`
+  - `AsanaHeart`
+  - `AsanaTaskMembership`
+  - `AsanaSection`
+  - `AsanaEnumOption`
+  - `AsanaDate`
+  - `AsanaTag`
+  - `AsanaTaskDependency`
+  - `AsanaCustomFieldValue`
+  - `AsanaStory`
+  - `AsanaAttachment`
+- Improved method documentation in `IAsanaClient`
+- Added comprehensive parameter documentation
+
+### Technical Improvements
+- Standardized error handling across all API calls
+- Improved response deserialization with null checks
+- Enhanced type safety with generic collections
+- Added proper initialization of collection properties
+- Standardized resource type handling
+
 ## [2.0.0] - 01-14-2025
 
 ### Breaking Changes

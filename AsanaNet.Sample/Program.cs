@@ -24,25 +24,25 @@ class Program
 
             // Get workspaces
             var workspaces = await asana.GetWorkspacesAsync();
-            foreach (AsanaWorkspace workspace in workspaces)
+            foreach (var workspace in workspaces.Data)
             {
                 Console.WriteLine($"Workspace: {workspace.Name}");
 
                 // Get teams in workspace
                 var teams = await asana.GetTeamsInWorkspaceAsync(workspace);
-                foreach (AsanaTeam team in teams)
+                foreach (var team in teams.Data)
                 {
                     Console.WriteLine($"  Team: {team.Name}");
 
                     // Get projects in team
                     var projects = await asana.GetProjectsInTeamAsync(team);
-                    foreach (AsanaProject project in projects)
+                    foreach (var project in projects.Data)
                     {
                         Console.WriteLine($"    Project: {project.Name}");
 
                         // Get tasks in project
                         var tasks = await asana.GetTasksInAProjectAsync(project);
-                        foreach (AsanaTask task in tasks)
+                        foreach (var task in tasks.Data)
                         {
                             Console.WriteLine($"      Task: {task.Name}");
                         }

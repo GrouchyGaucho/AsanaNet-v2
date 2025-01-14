@@ -4,11 +4,13 @@ using System.Text.Json.Serialization;
 
 namespace AsanaNet.Models;
 
-public class AsanaObjectCollection : IEnumerable<object>
+public class AsanaObjectCollection<T>
 {
     [JsonPropertyName("data")]
-    public List<object> Data { get; set; } = new();
+    public List<T> Data { get; set; } = new();
+}
 
-    public IEnumerator<object> GetEnumerator() => Data.GetEnumerator();
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+// For backward compatibility
+public class AsanaObjectCollection : AsanaObjectCollection<object>
+{
 } 
