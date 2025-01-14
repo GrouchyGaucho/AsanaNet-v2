@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0-alpha.1] - 2025-01-14
+
+### Added
+- Comprehensive sample project demonstrating all core features
+- Improved error handling in sample project with detailed console output
+- Enhanced authentication demonstration with both Basic and OAuth flows
+- File operation examples with proper cleanup
+- Parallel operation examples showing concurrent task management
+- Detailed setup instructions in sample project README
+
+### Changed
+- Updated all Microsoft.Extensions.* packages to stable 9.0.0 versions
+- Improved client initialization with better error handling
+- Enhanced sample project structure for better readability
+- Updated error handling to use Data dictionary for additional details
+
+### Fixed
+- Package version conflicts in sample project
+- OAuth client registration in sample project
+- Error handling and display in sample operations
+- File cleanup in sample demonstrations
+
 ## [2.1.0-alpha] - 2025-01-14
 
 ### Added

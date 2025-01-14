@@ -9,7 +9,16 @@ This open-source project uses the MIT License. See the [LICENSE](./LICENSE) file
 
 ---
 
-## Updates in v2.1.0-alpha
+## Latest Updates in v2.1.0-alpha.1
+- **Comprehensive Sample Project**: Complete working example demonstrating all core features
+- **Improved Error Handling**: Enhanced error handling with detailed console output and Data dictionary support
+- **Authentication Examples**: Demonstrations of both Basic and OAuth authentication flows
+- **File Operations**: Robust file handling examples with proper cleanup
+- **Parallel Processing**: Examples of concurrent task management
+- **Package Updates**: All dependencies updated to stable .NET 9.0.0 versions
+- **Documentation**: Enhanced setup instructions and API usage examples
+
+## Core Features from v2.1.0-alpha
 - **Enhanced Test Coverage**: Comprehensive test suite with 87% line coverage
 - **Improved Error Handling**: Robust error handling with detailed exception messages and event-based notifications
 - **Request Validation**: Strong validation for all API operations with descriptive error messages
@@ -28,7 +37,7 @@ This open-source project uses the MIT License. See the [LICENSE](./LICENSE) file
   - Pattern matching
   - Enhanced type inference
 - **Dependency Injection**: 
-  - Full support for Microsoft.Extensions.DependencyInjection
+  - Full support for Microsoft.Extensions.DependencyInjection 9.0.0
   - Scoped and transient service registration
   - Configuration binding support
 - **Async/Await**: 
@@ -44,8 +53,9 @@ This open-source project uses the MIT License. See the [LICENSE](./LICENSE) file
 - **Error Handling**: 
   - Exception-based error handling
   - Event-based error notifications
-  - Detailed error messages
+  - Detailed error messages with Data dictionary support
   - Custom exception types
+  - Comprehensive error context
 - **Type Safety**: 
   - Strong typing throughout
   - Proper null handling
@@ -216,7 +226,16 @@ The client supports modern exception handling and event-based error notification
 // Event-based error handling
 asana.OnError += (exception) => {
     Console.WriteLine($"API Error: {exception.Message}");
-    // Log or handle the error
+    // Standard error handling
+    if (exception.Data.Count > 0)
+    {
+        Console.WriteLine("Additional error details:");
+        foreach (var key in exception.Data.Keys)
+        {
+            Console.WriteLine($"{key}: {exception.Data[key]}");
+        }
+    }
+    // Log or handle the error as needed
 };
 
 // Try-catch with specific exceptions
@@ -254,10 +273,10 @@ catch (Exception ex)
 - **Windows**, **macOS**, or **Linux** operating system
 
 ## Dependencies
-- Microsoft.Extensions.DependencyInjection (>= 9.0.0)
-- Microsoft.Extensions.Configuration.Json (>= 9.0.0)
-- System.Text.Json (>= 9.0.0)
-- Microsoft.Extensions.Http (>= 9.0.0)
+- Microsoft.Extensions.DependencyInjection (= 9.0.0)
+- Microsoft.Extensions.Configuration.Json (= 9.0.0)
+- System.Text.Json (= 9.0.0)
+- Microsoft.Extensions.Http (= 9.0.0)
 
 ## Test Coverage
 - **Lines**: 87% (4,523/5,200 lines)
@@ -274,12 +293,17 @@ For detailed test information, see [2.1.0-alpha_TEST_REPORT.md](./2.1.0-alpha_TE
 ---
 
 ## Sample Project
-Check out the `AsanaNet.Sample` project in the solution for a complete working example. The sample project demonstrates:
-- Basic and OAuth authentication
-- Error handling
-- File operations
-- Task management
+The `AsanaNet.Sample` project in the solution provides a comprehensive working example demonstrating:
+- Basic and OAuth authentication with detailed examples
+- Enhanced error handling with detailed console output
+- File operations with proper cleanup and best practices
+- Task management and dependencies
 - Team and workspace operations
+- Parallel processing examples
+- Configuration management
+- Error handling with Data dictionary support
+- Complete authentication flows
+- Resource cleanup patterns
 
 ## Documentation
 - [Test Report](./2.1.0-alpha_TEST_REPORT.md) - Detailed testing documentation
