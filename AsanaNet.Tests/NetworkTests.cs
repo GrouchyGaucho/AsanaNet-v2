@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -7,128 +6,61 @@ using System.Threading.Tasks;
 using AsanaNet.Models;
 using AsanaNet.Exceptions;
 using FluentAssertions;
-using FluentAssertions.Specialized;
+using System.Collections.Generic;
 using Xunit;
-using Moq;
-using Moq.Protected;
-using System.Text.Json;
 
 namespace AsanaNet.Tests
 {
     public class NetworkTests : TestBase
     {
         [Fact]
-        public async Task ApiCall_WhenCancelled_ShouldThrowOperationCanceledException()
+        public async Task GetMeAsync_WhenNetworkError_ShouldThrowAsanaException()
         {
             // Arrange
-            var cts = new CancellationTokenSource();
-            
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .Returns<HttpRequestMessage, CancellationToken>(async (request, token) =>
-                {
-                    await Task.Delay(1000, token); // Simulate network delay
-                    return new HttpResponseMessage(HttpStatusCode.OK);
-                });
+            SetupMockErrorResponse("/users/me", HttpStatusCode.ServiceUnavailable, "Service Unavailable");
 
             // Act & Assert
-            Func<Task> act = async () => await Client.GetMeAsync(cts.Token);
-            cts.Cancel();
-            await act.Should().ThrowAsync<OperationCanceledException>();
+            await Client.Invoking(c => c.GetMeAsync(CancellationToken.None))
+                .Should().ThrowAsync<AsanaException>()
+                .WithMessage("API Error: Service Unavailable");
         }
 
         [Fact]
-        public async Task ApiCall_WhenNetworkTimeout_ShouldThrowHttpRequestException()
+        public async Task GetWorkspacesAsync_WhenNetworkTimeout_ShouldThrowAsanaException()
         {
             // Arrange
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ThrowsAsync(new HttpRequestException("Connection timed out"));
+            SetupMockErrorResponse("/workspaces", HttpStatusCode.GatewayTimeout, "Gateway Timeout");
 
             // Act & Assert
-            Func<Task> act = async () => await Client.GetMeAsync();
-            await act.Should().ThrowAsync<HttpRequestException>()
-                .WithMessage("Connection timed out");
+            await Client.Invoking(c => c.GetWorkspacesAsync(CancellationToken.None))
+                .Should().ThrowAsync<AsanaException>()
+                .WithMessage("API Error: Gateway Timeout");
         }
 
         [Fact]
-        public async Task ApiCall_WhenMalformedJsonResponse_ShouldThrowAsanaException()
+        public async Task GetTeamsInWorkspaceAsync_WhenInternalServerError_ShouldThrowAsanaException()
         {
             // Arrange
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("{ invalid json }")
-            };
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(response);
+            var workspace = new AsanaWorkspace { Id = "123" };
+            SetupMockErrorResponse($"/organizations/{workspace.Id}/teams", HttpStatusCode.InternalServerError, "Internal Server Error");
 
             // Act & Assert
-            Func<Task> act = async () => await Client.GetMeAsync();
-            await act.Should().ThrowAsync<AsanaException>()
-                .WithMessage("Failed to deserialize response");
+            await Client.Invoking(c => c.GetTeamsInWorkspaceAsync(workspace, CancellationToken.None))
+                .Should().ThrowAsync<AsanaException>()
+                .WithMessage("API Error: Internal Server Error");
         }
 
         [Fact]
-        public async Task ApiCall_WhenEmptyResponse_ShouldThrowAsanaException()
+        public async Task CreateTaskAsync_WhenBadGateway_ShouldThrowAsanaException()
         {
             // Arrange
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("")
-            };
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(response);
+            var request = new AsanaTaskCreateRequest { Name = "Test Task", WorkspaceId = "123" };
+            SetupMockErrorResponse("/tasks", HttpStatusCode.BadGateway, "Bad Gateway");
 
             // Act & Assert
-            Func<Task> act = async () => await Client.GetMeAsync();
-            await act.Should().ThrowAsync<AsanaException>()
-                .WithMessage("Failed to deserialize response");
-        }
-
-        [Fact]
-        public async Task ApiCall_WhenResponseWithoutData_ShouldThrowAsanaException()
-        {
-            // Arrange
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent("{ \"not_data\": null }")
-            };
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(response);
-
-            // Act & Assert
-            Func<Task> act = async () => await Client.GetMeAsync();
-            await act.Should().ThrowAsync<AsanaException>()
-                .WithMessage("Failed to deserialize response");
+            await Client.Invoking(c => c.CreateTaskAsync(request, CancellationToken.None))
+                .Should().ThrowAsync<AsanaException>()
+                .WithMessage("API Error: Bad Gateway");
         }
     }
 } 

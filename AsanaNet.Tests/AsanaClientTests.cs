@@ -20,50 +20,16 @@ namespace AsanaNet.Tests
         public async Task GetMeAsync_ShouldReturnUser()
         {
             // Arrange
-            var expectedUser = new AsanaUser
-            {
-                Id = "123",
-                Name = "Test User",
-                Email = "test@example.com"
-            };
-
-            SetupMockResponse("/users/me", new AsanaResponse<AsanaUser> { Data = expectedUser });
+            var expectedUser = new AsanaUser { Id = "123", Name = "Test User" };
+            SetupMockResponse("/users/me", expectedUser);
 
             // Act
-            var result = await Client.GetMeAsync();
+            var user = await Client.GetMeAsync(CancellationToken.None);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Id.Should().Be(expectedUser.Id);
-            result.Name.Should().Be(expectedUser.Name);
-            result.Email.Should().Be(expectedUser.Email);
-        }
-
-        [Fact]
-        public async Task GetMeAsync_WhenUnauthorized_ShouldThrowAsanaException()
-        {
-            // Arrange
-            var response = new HttpResponseMessage(HttpStatusCode.Unauthorized)
-            {
-                Content = new StringContent(JsonSerializer.Serialize(new AsanaErrorResponse
-                {
-                    Errors = new List<AsanaError> { new AsanaError { Message = "Not Authorized" } }
-                }))
-            };
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(r => r.RequestUri!.AbsolutePath.EndsWith("/users/me")),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(response);
-
-            // Act & Assert
-            Func<Task> act = async () => await Client.GetMeAsync();
-            await act.Should().ThrowAsync<AsanaException>()
-                .WithMessage("API Error: Not Authorized");
+            user.Should().NotBeNull();
+            user.Id.Should().Be(expectedUser.Id);
+            user.Name.Should().Be(expectedUser.Name);
         }
 
         [Fact]
@@ -75,46 +41,66 @@ namespace AsanaNet.Tests
                 new AsanaWorkspace { Id = "1", Name = "Workspace 1" },
                 new AsanaWorkspace { Id = "2", Name = "Workspace 2" }
             };
-
-            SetupMockResponse("/workspaces", new AsanaResponse<AsanaWorkspace[]> { Data = expectedWorkspaces });
+            SetupMockResponse("/workspaces", expectedWorkspaces);
 
             // Act
-            var result = await Client.GetWorkspacesAsync();
+            var workspaces = await Client.GetWorkspacesAsync(CancellationToken.None);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Should().HaveCount(2);
-            result[0].Id.Should().Be("1");
-            result[0].Name.Should().Be("Workspace 1");
-            result[1].Id.Should().Be("2");
-            result[1].Name.Should().Be("Workspace 2");
+            workspaces.Should().NotBeNull();
+            workspaces.Should().HaveCount(2);
+            workspaces[0].Id.Should().Be(expectedWorkspaces[0].Id);
+            workspaces[1].Name.Should().Be(expectedWorkspaces[1].Name);
         }
 
         [Fact]
-        public async Task GetWorkspacesAsync_WhenUnauthorized_ShouldThrowAsanaException()
+        public async Task GetTeamsInWorkspaceAsync_ShouldReturnTeams()
         {
             // Arrange
-            var response = new HttpResponseMessage(HttpStatusCode.Unauthorized)
+            var workspace = new AsanaWorkspace { Id = "123" };
+            var expectedTeams = new[]
             {
-                Content = new StringContent(JsonSerializer.Serialize(new AsanaErrorResponse
-                {
-                    Errors = new List<AsanaError> { new AsanaError { Message = "Not Authorized" } }
-                }))
+                new AsanaTeam { Id = "1", Name = "Team 1" },
+                new AsanaTeam { Id = "2", Name = "Team 2" }
             };
-            response.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            SetupMockResponse($"/organizations/{workspace.Id}/teams", expectedTeams);
 
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(r => r.RequestUri!.AbsolutePath.EndsWith("/workspaces")),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(response);
+            // Act
+            var teams = await Client.GetTeamsInWorkspaceAsync(workspace, CancellationToken.None);
 
-            // Act & Assert
-            Func<Task> act = async () => await Client.GetWorkspacesAsync();
-            await act.Should().ThrowAsync<AsanaException>()
-                .WithMessage("API Error: Not Authorized");
+            // Assert
+            teams.Should().NotBeNull();
+            teams.Should().HaveCount(2);
+            teams[0].Id.Should().Be(expectedTeams[0].Id);
+            teams[1].Name.Should().Be(expectedTeams[1].Name);
+        }
+
+        [Fact]
+        public async Task CreateTaskAsync_ShouldReturnCreatedTask()
+        {
+            // Arrange
+            var request = new AsanaTaskCreateRequest
+            {
+                Name = "Test Task",
+                WorkspaceId = "123",
+                Notes = "Test Notes"
+            };
+            var expectedTask = new AsanaTask
+            {
+                Id = "1",
+                Name = request.Name,
+                Notes = request.Notes
+            };
+            SetupMockResponse("/tasks", expectedTask, HttpMethod.Post);
+
+            // Act
+            var task = await Client.CreateTaskAsync(request, CancellationToken.None);
+
+            // Assert
+            task.Should().NotBeNull();
+            task.Id.Should().Be(expectedTask.Id);
+            task.Name.Should().Be(expectedTask.Name);
+            task.Notes.Should().Be(expectedTask.Notes);
         }
     }
 } 

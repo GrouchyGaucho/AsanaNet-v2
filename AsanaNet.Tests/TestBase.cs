@@ -1,84 +1,76 @@
 using System;
-using System.Net;
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using AsanaNet.Models;
-using Moq;
-using Moq.Protected;
 using System.Text.Json;
+using System.Net;
+using AsanaNet.Models;
+using System.Collections.Generic;
+using System.Net.Http.Json;
 
 namespace AsanaNet.Tests
 {
     public abstract class TestBase : IDisposable
     {
         protected const string TestApiKey = "test_api_key";
-        protected Mock<HttpMessageHandler> MockHttpHandler { get; }
-        protected IAsanaClient Client { get; }
+        protected readonly IAsanaClient Client;
+        private readonly HttpMessageHandler _mockHandler;
         private HttpRequestMessage? _lastRequest;
+        protected HttpRequestMessage? LastRequest => _lastRequest;
 
         protected TestBase()
         {
-            MockHttpHandler = new Mock<HttpMessageHandler>();
-            var httpClient = new HttpClient(MockHttpHandler.Object) { BaseAddress = new Uri("https://app.asana.com/api/1.0") };
+            _mockHandler = new MockHttpMessageHandler(req =>
+            {
+                _lastRequest = req;
+                return new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = JsonContent.Create(new AsanaErrorResponse
+                    {
+                        Errors = new List<AsanaError>
+                        {
+                            new() { Message = "Not Found" }
+                        }
+                    })
+                };
+            });
+
+            var httpClient = new HttpClient(_mockHandler) { BaseAddress = new Uri("https://app.asana.com/api/1.0") };
             Client = new Asana(TestApiKey, AuthenticationType.Basic, httpClient: httpClient);
         }
 
-        protected void SetupMockResponse<T>(string endpoint, AsanaResponse<T>? response = null, HttpMethod? method = null, HttpStatusCode statusCode = HttpStatusCode.OK)
+        protected void SetupMockResponse<T>(string endpoint, T? response = default, HttpMethod? method = null) where T : class
         {
-            var httpResponse = new HttpResponseMessage(statusCode);
-            if (response != null)
-            {
-                httpResponse.Content = JsonContent.Create(response);
-            }
-
-            MockHttpHandler
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(req =>
-                        (method == null || req.Method == method) &&
-                        req.RequestUri!.AbsolutePath.EndsWith(endpoint)),
-                    ItExpr.IsAny<CancellationToken>())
-                .Callback<HttpRequestMessage, CancellationToken>(async (request, _) =>
+            var mockHandler = (MockHttpMessageHandler)_mockHandler;
+            mockHandler.SetupRequest(req =>
+                req.RequestUri!.AbsolutePath.EndsWith(endpoint) &&
+                (method == null || req.Method == method),
+                new HttpResponseMessage(HttpStatusCode.OK)
                 {
-                    _lastRequest = request;
-                    if (request.Content != null)
-                    {
-                        // Clone the content before it's disposed
-                        var content = await request.Content.ReadAsStringAsync();
-                        var contentType = request.Content.Headers.ContentType?.ToString();
-                        if (request.Content is MultipartFormDataContent multipartContent)
-                        {
-                            _lastRequest.Content = new MultipartFormDataContent();
-                            foreach (var part in multipartContent)
-                            {
-                                var partContent = new StreamContent(await part.ReadAsStreamAsync());
-                                foreach (var header in part.Headers)
-                                {
-                                    partContent.Headers.Add(header.Key, header.Value);
-                                }
-                                ((MultipartFormDataContent)_lastRequest.Content).Add(partContent, part.Headers.ContentDisposition!.Name!.Trim('"'), part.Headers.ContentDisposition.FileName!.Trim('"'));
-                            }
-                        }
-                        else
-                        {
-                            _lastRequest.Content = new StringContent(content);
-                            if (contentType != null)
-                            {
-                                _lastRequest.Content.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(contentType);
-                            }
-                        }
-                    }
-                })
-                .ReturnsAsync(httpResponse);
+                    Content = response == null ? null : JsonContent.Create(new AsanaResponse<T> { Data = response })
+                });
         }
 
-        protected HttpRequestMessage? GetLastRequest() => _lastRequest;
+        protected void SetupMockErrorResponse(string endpoint, HttpStatusCode statusCode, string errorMessage)
+        {
+            var mockHandler = (MockHttpMessageHandler)_mockHandler;
+            mockHandler.SetupRequest(req =>
+                req.RequestUri!.AbsolutePath.EndsWith(endpoint),
+                new HttpResponseMessage(statusCode)
+                {
+                    Content = JsonContent.Create(new AsanaErrorResponse
+                    {
+                        Errors = new List<AsanaError>
+                        {
+                            new() { Message = errorMessage }
+                        }
+                    })
+                });
+        }
 
         public void Dispose()
         {
+            _mockHandler.Dispose();
             GC.SuppressFinalize(this);
         }
     }

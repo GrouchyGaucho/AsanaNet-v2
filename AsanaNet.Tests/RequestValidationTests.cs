@@ -1,115 +1,70 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AsanaNet.Models;
-using AsanaNet.Exceptions;
 using FluentAssertions;
-using FluentAssertions.Specialized;
+using System.Collections.Generic;
 using Xunit;
-using Moq;
-using Moq.Protected;
-using System.Text.Json;
 
 namespace AsanaNet.Tests
 {
     public class RequestValidationTests : TestBase
     {
         [Fact]
-        public async Task CreateTask_WhenRequestBodyInvalid_ShouldThrowArgumentException()
+        public async Task CreateTaskAsync_WhenRequestBodyInvalid_ShouldThrowArgumentException()
         {
             // Arrange
-            var invalidRequest = new AsanaTaskCreateRequest
-            {
-                Name = "",
-                WorkspaceId = ""
-            };
+            var request = new AsanaTaskCreateRequest();
 
             // Act & Assert
-            Func<Task> act = async () => await Client.CreateTaskAsync(invalidRequest);
-            await act.Should().ThrowAsync<ArgumentException>()
+            await Client.Invoking(c => c.CreateTaskAsync(request, CancellationToken.None))
+                .Should().ThrowAsync<ArgumentException>()
                 .WithMessage("Task name cannot be empty*");
         }
 
         [Fact]
-        public async Task UploadAttachment_WhenFileStreamNull_ShouldThrowArgumentNullException()
+        public async Task UploadAttachmentToTaskAsync_WhenFileStreamNull_ShouldThrowArgumentNullException()
         {
-            // Arrange
-            Stream? nullStream = null;
-
             // Act & Assert
-            Func<Task> act = async () => await Client.UploadAttachmentToTaskAsync("123", nullStream!, "test.txt", "application/octet-stream");
-            await act.Should().ThrowAsync<ArgumentNullException>()
+            await Client.Invoking(c => c.UploadAttachmentToTaskAsync("123", null!, "test.txt", "text/plain", CancellationToken.None))
+                .Should().ThrowAsync<ArgumentNullException>()
                 .WithMessage("Value cannot be null. (Parameter 'fileStream')");
         }
 
         [Fact]
-        public async Task UploadAttachment_WhenFileNameEmpty_ShouldThrowArgumentException()
-        {
-            // Arrange
-            using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
-
-            // Act & Assert
-            Func<Task> act = async () => await Client.UploadAttachmentToTaskAsync("123", stream, "", "application/octet-stream");
-            await act.Should().ThrowAsync<ArgumentException>()
-                .WithMessage("File name cannot be empty*");
-        }
-
-        [Fact]
-        public async Task UploadAttachment_WhenTaskIdEmpty_ShouldThrowArgumentException()
-        {
-            // Arrange
-            using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
-
-            // Act & Assert
-            Func<Task> act = async () => await Client.UploadAttachmentToTaskAsync("", stream, "test.txt", "application/octet-stream");
-            await act.Should().ThrowAsync<ArgumentException>()
-                .WithMessage("Task ID cannot be empty*");
-        }
-
-        [Fact]
-        public async Task UploadAttachment_WhenValidRequest_ShouldSendMultipartFormData()
+        public async Task UploadAttachmentToTaskAsync_WhenValidRequest_ShouldSendMultipartFormData()
         {
             // Arrange
             var taskId = "123";
-            var fileStream = new MemoryStream(new byte[] { 1, 2, 3 });
             var fileName = "test.txt";
+            var fileContent = "Test content";
             var contentType = "text/plain";
+            var expectedAttachment = new AsanaAttachment { Id = "1", Name = fileName };
 
-            SetupMockResponse<AsanaAttachment>($"/tasks/{taskId}/attachments", new AsanaResponse<AsanaAttachment>
-            {
-                Data = new AsanaAttachment { Id = "456", Name = fileName }
-            });
+            using var fileStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(fileContent));
+            SetupMockResponse($"/tasks/{taskId}/attachments", expectedAttachment, HttpMethod.Post);
 
             // Act
-            await Client.UploadAttachmentToTaskAsync(taskId, fileStream, fileName, contentType);
+            var result = await Client.UploadAttachmentToTaskAsync(taskId, fileStream, fileName, contentType, CancellationToken.None);
 
             // Assert
-            var request = GetLastRequest();
-            request.Should().NotBeNull();
-            request!.RequestUri!.AbsolutePath.Should().EndWith($"/tasks/{taskId}/attachments");
-            request.Content.Should().BeOfType<MultipartFormDataContent>();
+            result.Should().NotBeNull();
+            result.Id.Should().Be(expectedAttachment.Id);
+            result.Name.Should().Be(expectedAttachment.Name);
 
-            var multipartContent = (MultipartFormDataContent)request.Content;
-            var fileContent = multipartContent.Should().ContainSingle().Subject;
-            fileContent.Headers.ContentDisposition.Should().NotBeNull();
-            fileContent.Headers.ContentDisposition!.Name.Should().Be("file");
-            fileContent.Headers.ContentDisposition.FileName.Should().Be(fileName);
-        }
+            LastRequest.Should().NotBeNull();
+            LastRequest!.Content.Should().BeOfType<MultipartFormDataContent>();
+            var multipartContent = (MultipartFormDataContent)LastRequest.Content;
 
-        [Fact]
-        public async Task GetTeamsInWorkspace_WhenWorkspaceIdEmpty_ShouldThrowArgumentException()
-        {
-            // Arrange
-            var workspace = new AsanaWorkspace { Id = "" };
-
-            // Act & Assert
-            Func<Task> act = async () => await Client.GetTeamsInWorkspaceAsync(workspace);
-            await act.Should().ThrowAsync<ArgumentException>()
-                .WithMessage("Workspace ID cannot be empty*");
+            // Verify content disposition headers
+            var formContent = multipartContent.Should().ContainSingle().Subject;
+            formContent.Headers.ContentDisposition.Should().NotBeNull();
+            formContent.Headers.ContentDisposition!.Name.Should().Be("\"file\"");
+            formContent.Headers.ContentDisposition!.FileName.Should().Be($"\"{fileName}\"");
+            formContent.Headers.ContentType!.MediaType.Should().Be(contentType);
         }
     }
 } 

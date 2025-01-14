@@ -30,7 +30,7 @@ namespace AsanaNet.Tests
                 Notes = request.Notes
             };
 
-            SetupMockResponse("/tasks", new AsanaResponse<AsanaTask> { Data = expectedTask }, HttpMethod.Post);
+            SetupMockResponse("/tasks", expectedTask, HttpMethod.Post);
 
             // Act
             var result = await Client.CreateTaskAsync(request);
