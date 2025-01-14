@@ -93,6 +93,11 @@ public interface IAsanaClient
     Task<AsanaAttachment> AddAttachmentToTaskAsync(string taskId, string attachmentUrl, CancellationToken cancellationToken = default);
     Task AddLikeToTaskAsync(string taskId, CancellationToken cancellationToken = default);
     Task RemoveLikeFromTaskAsync(string taskId, CancellationToken cancellationToken = default);
-    Task<AsanaTask> MoveTaskToSectionAsync(string taskId, string sectionId, string insertBefore = null, string insertAfter = null, CancellationToken cancellationToken = default);
-    Task<AsanaTask> DuplicateTaskAsync(string taskId, string name = null, bool includeSubtasks = false, bool includeDependencies = false, CancellationToken cancellationToken = default);
+    Task<AsanaTask> MoveTaskToSectionAsync(string taskId, string sectionId, string? insertBefore = null, string? insertAfter = null, CancellationToken cancellationToken = default);
+    Task<AsanaTask> DuplicateTaskAsync(string taskId, string? name = null, bool includeSubtasks = false, bool includeDependencies = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Event that is raised when an error occurs during API operations
+    /// </summary>
+    event Action<Exception> OnError;
 } 

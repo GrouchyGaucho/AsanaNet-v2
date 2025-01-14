@@ -1,25 +1,31 @@
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
+using AsanaNet.Models;
 
-namespace AsanaNet;
-
-/// <summary>
-/// Interface defining the contract for interacting with the Asana API
-/// </summary>
-public interface IAsanaClient
+namespace AsanaNet
 {
-    /// <summary>
-    /// Event that is raised when an error occurs during API operations
-    /// </summary>
-    event Action<Exception> OnError;
+    public interface IAsanaClient
+    {
+        string ApiKey { get; }
+        string BaseUrl { get; }
+        AuthenticationType AuthType { get; }
+        string? OAuthToken { get; }
+        event Action<Exception>? OnError;
 
-    /// <summary>
-    /// Gets the API key used for authentication
-    /// </summary>
-    string ApiKey { get; }
-
-    /// <summary>
-    /// Gets or sets the base URL for the Asana API
-    /// </summary>
-    string BaseUrl { get; set; }
+        Task<AsanaUser> GetMeAsync(CancellationToken cancellationToken = default);
+        Task<AsanaWorkspace[]> GetWorkspacesAsync(CancellationToken cancellationToken = default);
+        Task<AsanaTeam[]> GetTeamsInWorkspaceAsync(AsanaWorkspace workspace, CancellationToken cancellationToken = default);
+        
+        Task<AsanaTask> CreateTaskAsync(AsanaTaskCreateRequest request, CancellationToken cancellationToken = default);
+        Task<AsanaTask> UpdateTaskAsync(string taskId, AsanaTaskUpdateRequest request, CancellationToken cancellationToken = default);
+        Task DeleteTaskAsync(string taskId, CancellationToken cancellationToken = default);
+        
+        Task<AsanaTask[]> GetTaskDependenciesAsync(string taskId, CancellationToken cancellationToken = default);
+        Task AddTaskDependencyAsync(string taskId, string dependencyTaskId, CancellationToken cancellationToken = default);
+        
+        Task<AsanaAttachment[]> GetTaskAttachmentsAsync(string taskId, CancellationToken cancellationToken = default);
+        Task<AsanaAttachment> UploadAttachmentToTaskAsync(string taskId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default);
+    }
 } 

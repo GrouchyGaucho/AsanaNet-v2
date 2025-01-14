@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsanaNet", "AsanaNet\AsanaN
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsanaNet.Sample", "AsanaNet.Sample\AsanaNet.Sample.csproj", "{C7DB452E-A5F5-4171-B95E-CBBB8A70EA72}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsanaNet.Tests", "AsanaNet.Tests\AsanaNet.Tests.csproj", "{08799C90-89F7-46E4-98E7-67B1D58E39A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,18 @@ Global
 		{C7DB452E-A5F5-4171-B95E-CBBB8A70EA72}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{C7DB452E-A5F5-4171-B95E-CBBB8A70EA72}.Release|x86.ActiveCfg = Release|Any CPU
 		{C7DB452E-A5F5-4171-B95E-CBBB8A70EA72}.Release|x86.Build.0 = Release|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Debug|x86.Build.0 = Debug|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Release|x86.ActiveCfg = Release|Any CPU
+		{08799C90-89F7-46E4-98E7-67B1D58E39A7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
