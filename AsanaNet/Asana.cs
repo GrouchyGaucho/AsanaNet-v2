@@ -12,9 +12,9 @@ using System.Linq;
 
 namespace AsanaNet
 {
-    public class Asana : IAsanaClient
-    {
-        private readonly HttpClient _httpClient;
+public class Asana : IAsanaClient
+{
+    private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly AuthenticationType _authType;
         private readonly string? _oAuthToken;
@@ -33,10 +33,10 @@ namespace AsanaNet
             _oAuthToken = oAuthToken;
 
             _httpClient = httpClient ?? new HttpClient
-            {
-                BaseAddress = new Uri(BaseUrl)
-            };
-
+        {
+            BaseAddress = new Uri(BaseUrl)
+        };
+        
             if (httpClient == null)
             {
                 ConfigureAuthentication();
@@ -127,10 +127,10 @@ namespace AsanaNet
             await EnsureSuccessStatusCodeAsync(response);
             var result = await ReadFromJsonAsync<AsanaResponse<AsanaTeam[]>>(response, cancellationToken);
             return result.Data;
-        }
+    }
 
-        public async Task<AsanaTask> CreateTaskAsync(AsanaTaskCreateRequest request, CancellationToken cancellationToken = default)
-        {
+    public async Task<AsanaTask> CreateTaskAsync(AsanaTaskCreateRequest request, CancellationToken cancellationToken = default)
+    {
             if (request == null) throw new ArgumentNullException(nameof(request));
             if (string.IsNullOrEmpty(request.Name)) throw new ArgumentException("Task name cannot be empty", nameof(request));
             if (string.IsNullOrEmpty(request.WorkspaceId)) throw new ArgumentException("Workspace ID cannot be empty", nameof(request));
@@ -139,10 +139,10 @@ namespace AsanaNet
             await EnsureSuccessStatusCodeAsync(response);
             var result = await ReadFromJsonAsync<AsanaResponse<AsanaTask>>(response, cancellationToken);
             return result.Data;
-        }
+    }
 
-        public async Task<AsanaTask> UpdateTaskAsync(string taskId, AsanaTaskUpdateRequest request, CancellationToken cancellationToken = default)
-        {
+    public async Task<AsanaTask> UpdateTaskAsync(string taskId, AsanaTaskUpdateRequest request, CancellationToken cancellationToken = default)
+    {
             if (string.IsNullOrEmpty(taskId)) throw new ArgumentException("Task ID cannot be empty", nameof(taskId));
             if (request == null) throw new ArgumentNullException(nameof(request));
 
@@ -150,10 +150,10 @@ namespace AsanaNet
             await EnsureSuccessStatusCodeAsync(response);
             var result = await ReadFromJsonAsync<AsanaResponse<AsanaTask>>(response, cancellationToken);
             return result.Data;
-        }
+    }
 
-        public async Task DeleteTaskAsync(string taskId, CancellationToken cancellationToken = default)
-        {
+    public async Task DeleteTaskAsync(string taskId, CancellationToken cancellationToken = default)
+    {
             if (string.IsNullOrEmpty(taskId)) throw new ArgumentException("Task ID cannot be empty", nameof(taskId));
 
             var response = await _httpClient.DeleteAsync($"tasks/{taskId}", cancellationToken);
@@ -168,10 +168,10 @@ namespace AsanaNet
             await EnsureSuccessStatusCodeAsync(response);
             var result = await ReadFromJsonAsync<AsanaResponse<AsanaTask[]>>(response, cancellationToken);
             return result.Data;
-        }
+    }
 
-        public async Task AddTaskDependencyAsync(string taskId, string dependencyTaskId, CancellationToken cancellationToken = default)
-        {
+    public async Task AddTaskDependencyAsync(string taskId, string dependencyTaskId, CancellationToken cancellationToken = default)
+    {
             if (string.IsNullOrEmpty(taskId)) throw new ArgumentException("Task ID cannot be empty", nameof(taskId));
             if (string.IsNullOrEmpty(dependencyTaskId)) throw new ArgumentException("Dependency task ID cannot be empty", nameof(dependencyTaskId));
 
@@ -187,16 +187,16 @@ namespace AsanaNet
             await EnsureSuccessStatusCodeAsync(response);
             var result = await ReadFromJsonAsync<AsanaResponse<AsanaAttachment[]>>(response, cancellationToken);
             return result.Data;
-        }
+    }
 
-        public async Task<AsanaAttachment> UploadAttachmentToTaskAsync(string taskId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
-        {
+    public async Task<AsanaAttachment> UploadAttachmentToTaskAsync(string taskId, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+    {
             if (string.IsNullOrEmpty(taskId)) throw new ArgumentException("Task ID cannot be empty", nameof(taskId));
             if (fileStream == null) throw new ArgumentNullException(nameof(fileStream));
             if (string.IsNullOrEmpty(fileName)) throw new ArgumentException("File name cannot be empty", nameof(fileName));
             if (string.IsNullOrEmpty(contentType)) throw new ArgumentException("Content type cannot be empty", nameof(contentType));
 
-            using var content = new MultipartFormDataContent();
+        using var content = new MultipartFormDataContent();
             using var fileContent = new StreamContent(fileStream);
             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
             content.Add(fileContent, "file", fileName);
