@@ -1,6 +1,6 @@
 # AsanaNet v2
 
-## 🚨 This project has been modernized and updated for .NET 9 🚨
+## This project has been modernized and updated for .NET 9
 
 ### About
 This project is a modernized implementation of **AsanaNet**, a .NET library for interacting with the Asana REST API. Originally created by **Antony Woods** in 2012, this updated version has been refactored by **Nick Cassidy** in 2025 to target **.NET 9** and to use a more modern development approach.
